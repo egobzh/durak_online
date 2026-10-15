@@ -1,0 +1,316 @@
+basePath: /
+definitions:
+  durak-online_internal_domain.AuthResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/durak-online_internal_domain.User'
+    type: object
+  durak-online_internal_domain.ForgotPasswordRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+    required:
+    - email
+    type: object
+  durak-online_internal_domain.LoginRequest:
+    properties:
+      password:
+        example: secret123
+        type: string
+      username:
+        example: card_master
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  durak-online_internal_domain.MessageResponse:
+    properties:
+      message:
+        example: Операция выполнена успешно
+        type: string
+    type: object
+  durak-online_internal_domain.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secret123
+        maxLength: 72
+        minLength: 6
+        type: string
+      username:
+        example: card_master
+        maxLength: 30
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  durak-online_internal_domain.ResetPasswordRequest:
+    properties:
+      new_password:
+        example: newsecret123
+        maxLength: 72
+        minLength: 6
+        type: string
+      token:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  durak-online_internal_domain.User:
+    properties:
+      created_at:
+        type: string
+      credits:
+        type: integer
+      email:
+        type: string
+      id:
+        type: string
+      rating:
+        type: integer
+      total_matches:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+      wins:
+        type: integer
+    type: object
+  durak-online_internal_domain.UserProfileResponse:
+    properties:
+      credits:
+        example: 5000
+        type: integer
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: a4d2e482-1d54-47ef-a0b2-c07a9b8efaa1
+        type: string
+      rating:
+        example: 1200
+        type: integer
+      total_matches:
+        example: 0
+        type: integer
+      username:
+        example: card_master
+        type: string
+      wins:
+        example: 0
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Бэкенд-сервис карточной игры «Дурак Онлайн» (MVP).
+  title: Durak Online Core API
+  version: "1.0"
+paths:
+  /api/v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Отправляет ссылку для смены пароля на e-mail. На текущем этапе
+        ссылка выводится в консоль сервера. Всегда возвращает одинаковый ответ (защита
+        от перебора аккаунтов).
+      parameters:
+      - description: E-mail пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/durak-online_internal_domain.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статусное сообщение
+          schema:
+            $ref: '#/definitions/durak-online_internal_domain.MessageResponse'
+        "400":
+          description: Некорректные входные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Запрос ссылки для сброса пароля
+      tags:
+      - Аутентификация
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает JWT-токен по логину и паролю. Токен действителен 24
+        часа.
+      parameters:
+      - description: Логин и пароль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/durak-online_internal_domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная авторизация
+          schema:
+            $ref: '#/definitions/durak-online_internal_domain.AuthResponse'
+        "400":
+          description: Некорректные входные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неверный логин или пароль
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Вход в аккаунт
+      tags:
+      - Аутентификация
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт аккаунт по e-mail, логину и паролю. После регистрации автоматически
+        выдаётся JWT-токен, 5000 кредитов и 1200 очков рейтинга.
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/durak-online_internal_domain.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Успешная регистрация
+          schema:
+            $ref: '#/definitions/durak-online_internal_domain.AuthResponse'
+        "400":
+          description: Некорректные входные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Пользователь с таким логином или e-mail уже существует
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Регистрация нового игрока
+      tags:
+      - Аутентификация
+  /api/v1/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает новый пароль по одноразовому токену из письма. После
+        смены пароля все активные сессии аннулируются.
+      parameters:
+      - description: Токен и новый пароль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/durak-online_internal_domain.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статусное сообщение
+          schema:
+            $ref: '#/definitions/durak-online_internal_domain.MessageResponse'
+        "400":
+          description: Недействительный или просроченный токен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Сброс пароля по токену
+      tags:
+      - Аутентификация
+  /api/v1/profile/me:
+    get:
+      description: 'Возвращает данные авторизованного игрока: рейтинг, баланс, количество
+        матчей и побед.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Профиль игрока
+          schema:
+            $ref: '#/definitions/durak-online_internal_domain.UserProfileResponse'
+        "401":
+          description: Не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Профиль текущего игрока
+      tags:
+      - Профиль
+securityDefinitions:
+  BearerAuth:
+    description: Введите "Bearer <токен>" для авторизации.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
