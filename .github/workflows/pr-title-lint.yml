@@ -1,0 +1,36 @@
+name: PR Title Lint
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  lint-pr-title:
+    name: Lint PR Title
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Check PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Формат: <type>(<scope>): <subject>
+          # Пример: feat(auth): add login endpoint
+          types: |
+            feat
+            fix
+            docs
+            test
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^[A-ZА-Я].+[^.]$
+          subjectPatternError: |
+            Описание (subject) должно начинаться с заглавной буквы
+            и не заканчиваться точкой.
+          wip: true
+          validateSingleCommit: false
